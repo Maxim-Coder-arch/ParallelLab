@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using ParallelLab.Models;
 
 namespace ParallelLab.Services;
@@ -27,6 +28,8 @@ public class MultithreadedProcessor
         Thread[] threads = new Thread[threadCount];
         WorkerResult?[] results = new WorkerResult?[threadCount];
 
+        ConcurrentQueue<Exception> errors = new();
+
         int itemsPerThread = data.Length / threadCount;
 
         for (int i = 0; i < threadCount; i++)
@@ -43,20 +46,33 @@ public class MultithreadedProcessor
 
             threads[i] = new Thread(() =>
             {
-                ComputationResult computation = _computationService.ComputeRange(
-                    data,
-                    startIndex,
-                    endIndex,
-                    iterations
-                );
+                try
+                {
+                    ComputationResult computation =
+                        _computationService.ComputeRange(
+                            data,
+                            startIndex,
+                            endIndex,
+                            iterations
+                        );
 
-                results[currentIndex] = new WorkerResult(
-                    workerId,
-                    startIndex,
-                    endIndex,
-                    computation.ProcessedItems,
-                    computation.Checksum
-                );
+                    results[currentIndex] = new WorkerResult(
+                        workerId,
+                        startIndex,
+                        endIndex,
+                        computation.ProcessedItems,
+                        computation.Checksum
+                    );
+                }
+                catch (Exception exception)
+                {
+                    errors.Enqueue(
+                        new InvalidOperationException(
+                            $"Ошибка в рабочем потоке №{workerId}.",
+                            exception
+                        )
+                    );
+                }
             });
 
             threads[i].Start();
@@ -68,6 +84,14 @@ public class MultithreadedProcessor
         }
 
         stopwatch.Stop();
+
+        if (!errors.IsEmpty)
+        {
+            throw new AggregateException(
+                "Во время многопоточной обработки возникли ошибки.",
+                errors
+            );
+        }
 
         long totalProcessedItems = 0;
         long totalChecksum = 0;
