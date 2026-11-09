@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace ParallelLab.Models
-{
-    internal class ComputationResult
-    {
-    }
-}
+﻿namespace ParallelLab.Models;
+public sealed record ComputationResult(
+    long ProcessedItems,
+    long Checksum
+);
