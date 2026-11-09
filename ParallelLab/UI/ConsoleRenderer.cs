@@ -1,4 +1,5 @@
 ﻿using ParallelLab.Models;
+using ParallelLab.Models;
 
 namespace ParallelLab.UI;
 
@@ -76,6 +77,38 @@ public class ConsoleRenderer
         Console.WriteLine(
             $"Контрольные суммы совпадают: " +
             $"{sequential.Computation.Checksum == multithreaded.Computation.Checksum}"
+        );
+
+        Console.WriteLine("==============================================");
+    }
+
+    public void RenderCounterExperiment(CounterExperimentResult result)
+    {
+        Console.WriteLine();
+        Console.WriteLine("==============================================");
+        Console.WriteLine("          ЭКСПЕРИМЕНТ С ОБЩИМ СЧЁТЧИКОМ");
+        Console.WriteLine("==============================================");
+
+        Console.WriteLine();
+
+        Console.WriteLine($"Ожидаемое значение:       {result.ExpectedCount:N0}");
+        Console.WriteLine($"Небезопасный счётчик:     {result.UnsafeCount:N0}");
+        Console.WriteLine($"Безопасный счётчик:       {result.SafeCount:N0}");
+
+        Console.WriteLine();
+
+        long lostIncrements = result.ExpectedCount - result.UnsafeCount;
+
+        Console.WriteLine($"Потерянные увеличения:    {lostIncrements:N0}");
+
+        Console.WriteLine();
+
+        Console.WriteLine(
+            $"Обычный ++ корректен:    {result.UnsafeCount == result.ExpectedCount}"
+        );
+
+        Console.WriteLine(
+            $"Interlocked корректен:   {result.SafeCount == result.ExpectedCount}"
         );
 
         Console.WriteLine("==============================================");

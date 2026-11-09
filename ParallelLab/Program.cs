@@ -6,6 +6,7 @@ const int DataSize = 100_000;
 const int Iterations = 50;
 const int ThreadCount = 4;
 const int Repetitions = 5;
+const int IncrementsPerThread = 1_000_000;
 
 Console.OutputEncoding = System.Text.Encoding.UTF8;
 
@@ -20,9 +21,6 @@ Console.WriteLine($"Количество элементов: {DataSize:N0}");
 Console.WriteLine($"Итераций на элемент:  {Iterations}");
 Console.WriteLine($"Рабочих потоков:      {ThreadCount}");
 Console.WriteLine($"Повторений:           {Repetitions}");
-
-Console.WriteLine();
-Console.WriteLine("Подготовка данных...");
 
 int[] data = Enumerable
     .Range(1, DataSize)
@@ -40,11 +38,8 @@ BenchmarkService benchmarkService = new(
     multithreadedProcessor
 );
 
-Console.WriteLine("Данные подготовлены.");
-
 Console.WriteLine();
-Console.WriteLine("Выполнение эксперимента...");
-Console.WriteLine("Пожалуйста, подождите.");
+Console.WriteLine("Выполнение основного эксперимента...");
 
 BenchmarkReport report = benchmarkService.Run(
     data,
@@ -58,4 +53,16 @@ ConsoleRenderer renderer = new();
 renderer.RenderReport(report);
 
 Console.WriteLine();
-Console.WriteLine("Эксперимент завершён.");
+Console.WriteLine("Выполнение эксперимента со счётчиком...");
+
+CounterExperimentService counterService = new();
+
+CounterExperimentResult counterResult = counterService.Run(
+    ThreadCount,
+    IncrementsPerThread
+);
+
+renderer.RenderCounterExperiment(counterResult);
+
+Console.WriteLine();
+Console.WriteLine("Все эксперименты завершены.");
