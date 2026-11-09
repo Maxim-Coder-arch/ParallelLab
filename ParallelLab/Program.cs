@@ -65,4 +65,26 @@ CounterExperimentResult counterResult = counterService.Run(
 renderer.RenderCounterExperiment(counterResult);
 
 Console.WriteLine();
+Console.WriteLine("Проверка обработки исключений...");
+
+try
+{
+    multithreadedProcessor.Process(
+        data,
+        iterations: 0,
+        threadCount: ThreadCount
+    );
+}
+catch (AggregateException exception)
+{
+    Console.WriteLine("Ошибки успешно перехвачены.");
+
+    foreach (Exception error in exception.InnerExceptions)
+    {
+        Console.WriteLine(error.Message);
+        Console.WriteLine($"Причина: {error.InnerException?.Message}");
+    }
+}
+
+Console.WriteLine();
 Console.WriteLine("Все эксперименты завершены.");
